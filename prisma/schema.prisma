@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BoardMember {
+  id Int @id @default(autoincrement())
+  ip String @unique
+  name String
+
+  board Board @relation(fields: [boardId], references: [id])
+  boardId Int 
+
+  posts Post[]
+  comments Comment[]
+}
+
+model Board {
+  id Int @id @default(autoincrement())
+  title String
+  posts Post[]
+  members BoardMember[]
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+
+  creator BoardMember @relation(fields: [creatorId], references: [id])
+  creatorId Int 
+
+  board Board @relation(fields: [boardId], references: [id])
+  boardId Int
+
+  message String
+  published_at DateTime @default(now())
+  comments Comment[]
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+
+  creator BoardMember @relation(fields: [creatorId], references: [id])
+  creatorId Int
+
+  message String
+  published_at DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+}
