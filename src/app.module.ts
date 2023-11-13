@@ -1,14 +1,19 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BoardsModule } from './boards/boards.module';
-import { BoardmembersModule } from './boardmembers/boardmembers.module';
+import { BoardMembersModule } from './boardmembers/boardmembers.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
+import { PrismaService } from './prisma/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
+import { BoardCreatorIdentifierMiddleware } from './auth/boardCreatorIdentifier.middleware.ts';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [BoardsModule, BoardmembersModule, PostsModule, CommentsModule],
+  imports: [BoardsModule, BoardMembersModule, PostsModule, CommentsModule, PrismaModule, AuthModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PrismaService],
 })
-export class AppModule {}
+export class AppModule {
+}

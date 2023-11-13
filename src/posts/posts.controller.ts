@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, NotFoundException } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { PostDao } from './dao/post.dao';
+import { CommentDao } from 'src/comments/dao/comment.dao';
+import { CommentDto } from 'src/comments/dto/comment.dto';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
-
-  @Post()
-  create(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.create(createPostDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.postsService.findAll();
-  }
-
+  
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postsService.findOne(+id);
+  async getPost(@Param() post: PostDao) {
+    const { id } = post;
+    const candidate = await this.postsService.post({ id: id });
+    if (candidate == null) throw new NotFoundException('Post not found');
+    return candidate;
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.update(+id, updatePostDto);
+  @Post(':id/comments')
+  async comment(@Req() req, @Param() post: PostDao, @Body() comment: CommentDto) {
+    const { id } = post;
+    const { message } = comment;
+
+    return await this.postsService.update({
+      where: {
+        id: id
+      },
+      data: {
+        comments: {
+          create: {
+            message: message,
+            creatorHash: req.member.hash
+          }
+        }
+      },
+      include: {
+        comments: true
+      }
+    });
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(+id);
+  @Get(':id/comments')
+  async getComments(@Param() post: PostDao) {
+    const { id } = post;
+    const candidate = await this.postsService.post({ id: id }, { comments: true });
+    if (candidate == null) throw new NotFoundException('Post not found');
+    return candidate.comments;
   }
 }

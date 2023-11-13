@@ -11,32 +11,30 @@ datasource db {
 }
 
 model BoardMember {
-  id Int @id @default(autoincrement())
-  ip String @unique
-  name String
+  hash String @id
 
   board Board @relation(fields: [boardId], references: [id])
-  boardId Int 
+  boardId String @db.Uuid 
 
   posts Post[]
   comments Comment[]
 }
 
 model Board {
-  id Int @id @default(autoincrement())
+  id String @db.Uuid @id @default(dbgenerated("gen_random_uuid()"))
   title String
   posts Post[]
   members BoardMember[]
 }
 
 model Post {
-  id Int @id @default(autoincrement())
+  id String @db.Uuid @id @default(dbgenerated("gen_random_uuid()"))
 
-  creator BoardMember @relation(fields: [creatorId], references: [id])
-  creatorId Int 
+  creator BoardMember? @relation(fields: [creatorHash], references: [hash])
+  creatorHash String? 
 
   board Board @relation(fields: [boardId], references: [id])
-  boardId Int
+  boardId String @db.Uuid
 
   message String
   published_at DateTime @default(now())
@@ -44,14 +42,18 @@ model Post {
 }
 
 model Comment {
-  id Int @id @default(autoincrement())
+  id String @db.Uuid @id @default(dbgenerated("gen_random_uuid()"))
 
-  creator BoardMember @relation(fields: [creatorId], references: [id])
-  creatorId Int
+  creator BoardMember @relation(fields: [creatorHash], references: [hash])
+  creatorHash String
 
   message String
   published_at DateTime @default(now())
 
+  // parent Comment? @relation("ParentComment", fields: [parentId], references: [id])
+  // parentId String? @db.Uuid
+  // children Comment[] @relation("ParentComment")
+
   post Post @relation(fields: [postId], references: [id])
-  postId Int
+  postId String @db.Uuid
 }

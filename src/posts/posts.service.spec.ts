@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+mport { Test, TestingModule } from '@nestjs/testing';
 import { PostsService } from './posts.service';
 
 describe('PostsService', () => {

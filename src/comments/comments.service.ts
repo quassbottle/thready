@@ -1,26 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+import { Comment, Prisma } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CommentsService {
-  create(createCommentDto: CreateCommentDto) {
-    return 'This action adds a new comment';
-  }
+    constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all comments`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
-  }
-
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
-  }
+    async create(data: Prisma.CommentCreateInput): Promise<Comment> {
+        return this.prisma.comment.create({
+          data: data,
+        });
+      }
+    
+    async comment(where: Prisma.CommentWhereUniqueInput, include?: Prisma.CommentInclude) {
+      return this.prisma.comment.findUnique({
+        where: where,
+        include: include
+      });
+    }
+    
+    async comments(params: {
+      skip? : number,
+      take? : number,
+      cursor? : Prisma.CommentWhereUniqueInput,
+      where? : Prisma.CommentWhereInput,
+      orderBy? : Prisma.CommentOrderByWithRelationInput,
+      include? : Prisma.CommentInclude
+    }) {
+      const { skip, take, cursor, where, orderBy, include } = params;
+      return this.prisma.comment.findMany({
+        skip,
+        take,
+        cursor,
+        where,
+        orderBy,
+        include
+      })
+    }
+    
+    async update(params: {
+      where: Prisma.CommentWhereUniqueInput,
+      data: Prisma.CommentUpdateInput,
+      include?: Prisma.CommentInclude
+    }) {
+      const { data, where, include } = params;
+      return this.prisma.comment.update({
+        data: data,
+        where: where,
+        include: include
+      });
+    }
+    
+    async delete(where: Prisma.CommentWhereUniqueInput) 
+      : Promise<Comment> {
+      return this.prisma.comment.delete({
+        where: where
+      });
+    }
 }
+
+export { Comment }

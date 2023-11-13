@@ -1,34 +1,31 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+import { CommentDao } from './dao/comment.dao';
 
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
-  @Post()
-  create(@Body() createCommentDto: CreateCommentDto) {
-    return this.commentsService.create(createCommentDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.commentsService.findAll();
-  }
-
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentsService.update(+id, updateCommentDto);
+  async getComment(@Param() dao: CommentDao) {
+    const { id } = dao;
+    const candidate = await this.commentsService.comment({ id: id });
+    if (candidate == null) throw new NotFoundException('Comment not found');
+    return candidate;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentsService.remove(+id);
+  async deleteComment(@Req() req, @Param() dao: CommentDao) {
+    const { id } = dao;
+
+    const candidate = await this.commentsService.comment({ id: id });
+    if (candidate == null) {
+      throw new NotFoundException('Comment not found');
+    }
+    if (candidate.creatorHash === req.member.hash) {
+      return await this.commentsService.delete({ id: id });
+    }
+    
+    throw new ForbiddenException();
   }
 }

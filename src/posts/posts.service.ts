@@ -1,26 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { Post, Prisma } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PostsService {
-  create(createPostDto: CreatePostDto) {
-    return 'This action adds a new post';
+  constructor(private prisma: PrismaService) { }
+
+  async create(data: Prisma.PostCreateInput): Promise<Post> {
+    return this.prisma.post.create({
+      data: data,
+    });
   }
 
-  findAll() {
-    return `This action returns all posts`;
+  async post(where: Prisma.PostWhereUniqueInput, include?: Prisma.PostInclude) {
+    return this.prisma.post.findUnique({
+      where: where,
+      include: include
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  async posts(params: {
+    skip? : number,
+    take? : number,
+    cursor? : Prisma.PostWhereUniqueInput,
+    where? : Prisma.PostWhereInput,
+    orderBy? : Prisma.PostOrderByWithRelationInput,
+    include? : Prisma.PostInclude
+  }) {
+    const { skip, take, cursor, where, orderBy, include } = params;
+    return this.prisma.post.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+      include
+    })
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  async update(params: {
+    where: Prisma.PostWhereUniqueInput,
+    data: Prisma.PostUpdateInput,
+    include?: Prisma.PostInclude
+  }) {
+    const { data, where, include } = params;
+    return this.prisma.post.update({
+      data: data,
+      where: where,
+      include: include
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async delete(where: Prisma.PostWhereUniqueInput) 
+    : Promise<Post> {
+    return this.prisma.post.delete({
+      where: where
+    });
   }
 }
+
+export { Post }
