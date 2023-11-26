@@ -15,7 +15,12 @@ export class PostCreatorIdentifierMiddleware implements NestMiddleware {
 
         const boardId = post.boardId;
         
-        const hash = createHash('md5').update(req.ip + req.params.id).digest('hex').toString();
+        //const hash = createHash('md5').update(req.ip + req.params.id).digest('hex').toString();
+
+        const hash = await this.membersService.generateHash({
+            ip: req.ip,
+            id: req.params.id
+        });
 
         let candidate = await this.membersService.boardHasMember({
             boardId: boardId,

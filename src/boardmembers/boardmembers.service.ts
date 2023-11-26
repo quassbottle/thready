@@ -1,11 +1,21 @@
 import { HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { BoardMember, Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { createHash } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class BoardMembersService {
     constructor(private prisma: PrismaService) { }
+
+    async generateHash(params: {
+        ip: string,
+        id: number
+    }) : Promise<string> {
+        const { ip, id } = params;
+        const hash = createHash('md5').update(ip + "_" + id).digest('hex').toString(); // underscore prevents collisions for specific IPs and boards
+        return hash;
+    }
 
     async member(where: Prisma.BoardMemberWhereUniqueInput) {
         return this.prisma.boardMember.findUnique({

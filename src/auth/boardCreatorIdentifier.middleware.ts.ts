@@ -8,7 +8,12 @@ export class BoardCreatorIdentifierMiddleware implements NestMiddleware {
     constructor(private readonly membersService: BoardMembersService) {}
 
     async use(req: any, res: any, next: NextFunction) {
-        const hash = createHash('md5').update(req.ip + req.params.id).digest('hex').toString();
+        //const hash = createHash('md5').update(req.ip + req.params.id).digest('hex').toString();
+
+        const hash = await this.membersService.generateHash({
+            ip: req.ip,
+            id: req.params.id
+        });
 
         let candidate = await this.membersService.boardHasMember({
             boardId: req.params.id,
