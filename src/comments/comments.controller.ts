@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpException, ForbiddenException, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CommentDao } from './dao/comment.dao';
 
@@ -7,17 +7,14 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Get(':id')
-  async getComment(@Param() dao: CommentDao) {
-    const { id } = dao;
+  async getComment(@Param('id', ParseUUIDPipe) id) {
     const candidate = await this.commentsService.comment({ id: id });
     if (candidate == null) throw new NotFoundException('Comment not found');
     return candidate;
   }
 
   @Delete(':id')
-  async deleteComment(@Req() req, @Param() dao: CommentDao) {
-    const { id } = dao;
-
+  async deleteComment(@Req() req, @Param('id', ParseUUIDPipe) id) {
     const candidate = await this.commentsService.comment({ id: id });
     if (candidate == null) {
       throw new NotFoundException('Comment not found');

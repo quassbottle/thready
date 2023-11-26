@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, HttpException, HttpStatus, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, HttpException, HttpStatus, Req, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 
 import { BoardsService } from './boards.service';
 import { Board as BoardModel } from './boards.service';
@@ -10,35 +10,31 @@ export class BoardsController {
   constructor(private readonly boardsService: BoardsService) {}
 
   @Get(':id')
-  async getById(@Param() dao : BoardDao) : Promise<BoardModel> {
-    const { id } = dao;
+  async getById(@Param('id', ParseUUIDPipe) id) : Promise<BoardModel> {
     const candidate = await this.boardsService.board({ id: id })
     if (candidate == null) throw new NotFoundException('Board not found');
     return candidate;
   }
 
   @Get(':id/members')
-  async getMembers(@Param() dao: BoardDao) {
-    const { id } = dao;
+  async getMembers(@Param('id', ParseUUIDPipe) id) {
     const candidate = await this.boardsService.board({ id: id }, { members: true });
     if (candidate == null) throw new NotFoundException('Board not found');
     return candidate.members;
   }
 
   @Get(':id/posts')
-  async getPosts(@Param() dao: BoardDao) {
-    const { id } = dao;
+  async getPosts(@Param('id', ParseUUIDPipe) id) {
     const candidate = await this.boardsService.board({ id: id }, { posts: true });
     if (candidate == null) throw new NotFoundException('Board not found');
     return candidate.posts;
   }
 
   @Post(':id/posts')
-  async createPost(@Req() req, @Param() dao: BoardDao, @Body() params: {
+  async createPost(@Req() req, @Param('id', ParseUUIDPipe) id, @Body() params: {
     message: string
   }) {
     const { message } = params;
-    const { id } = dao;
 
     return this.boardsService.update({
       where: {
@@ -82,9 +78,8 @@ export class BoardsController {
     return this.boardsService.create({ title });
   }
 
-  @Delete()
-  async deleteBoard(@Param() dao: BoardDao) : Promise<BoardModel> {
-    const { id } = dao;
+  @Delete(':id')
+  async deleteBoard(@Param('id', ParseUUIDPipe) id) : Promise<BoardModel> {
     return this.boardsService.delete({
       id: id
     });

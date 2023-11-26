@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostDao } from './dao/post.dao';
 import { CommentDao } from 'src/comments/dao/comment.dao';
@@ -9,16 +9,14 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
   
   @Get(':id')
-  async getPost(@Param() post: PostDao) {
-    const { id } = post;
+  async getPost(@Param('id', ParseUUIDPipe) id) {
     const candidate = await this.postsService.post({ id: id });
     if (candidate == null) throw new NotFoundException('Post not found');
     return candidate;
   }
 
   @Post(':id/comments')
-  async comment(@Req() req, @Param() post: PostDao, @Body() comment: CommentDto) {
-    const { id } = post;
+  async comment(@Req() req, @Param('id', ParseUUIDPipe) id, @Body() comment: CommentDto) {
     const { message } = comment;
 
     return await this.postsService.update({
@@ -40,8 +38,7 @@ export class PostsController {
   }
 
   @Get(':id/comments')
-  async getComments(@Param() post: PostDao) {
-    const { id } = post;
+  async getComments(@Param('id', ParseUUIDPipe) id) {
     const candidate = await this.postsService.post({ id: id }, { comments: true });
     if (candidate == null) throw new NotFoundException('Post not found');
     return candidate.comments;
